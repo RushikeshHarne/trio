@@ -21,4 +21,4 @@ INSERT INTO sales (product, quantity, sale_date, customer, amount) VALUES
 ('Router', 6, '2023-01-22', 'Network Pros', 1200.00),
 ('SSD', 10, '2023-01-23', 'Storage Solutions', 1500.00),
 ('Webcam', 7, '2023-01-24', 'Video Tech', 700.00);
-~                                                  
+                                           
