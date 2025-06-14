@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    environment:
+      - MYSQL_HOST=mysql_db
+      - POSTGRES_HOST=postgres_db
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=app_password
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_password
+      - ANALYSIS_YEAR=2023  # Default year
+      - ANALYSIS_MONTH=1    # Default month
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+      postgres_db:
+        condition: service_healthy
+    volumes:
+      - ./reports:/app/reports
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  mysql_db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=inventory_db
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=app_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uapp_user", "-papp_password"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  postgres_db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_password
+      - POSTGRES_DB=supply_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "psql -U app_user -d supply_db -c 'SELECT 1 FROM purchases LIMIT 1'"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+volumes:
+  mysql_data:
+  postgres_data:
